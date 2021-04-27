@@ -64,9 +64,9 @@ const draw = {
             yspeed:0,
         })
 
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 20; i++) {
             this.k = Math.ceil(Math.random() * 360);
-            this.dir = Math.ceil(Math.random() * 20);
+            this.dir = Math.ceil(Math.random() * 30);
             this.ctx.fillStyle = this.colors[Math.floor(Math.random() * 4)];
             
             let x1 = this.dir * Math.sin(2 * Math.PI / 360 * this.k);
@@ -132,7 +132,7 @@ const draw = {
 
 window.onload = ()=> {
     stats = new Stats();
-    document.body.appendChild(stats.dom);
+    // document.body.appendChild(stats.dom);
 
     draw.init('#cvs');
 
