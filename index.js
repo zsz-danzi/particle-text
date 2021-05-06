@@ -1,3 +1,8 @@
+//防止iphone 快速点击两下 页面往上调
+window.ontouchstart = function(e) { e.preventDefault(); };
+//禁止页面滑动
+document.documentElement.addEventListener('touchmove',function(e){e.preventDefault();});
+
 let stats;
 
 const draw = {
@@ -201,7 +206,8 @@ const draw = {
     },
 }
 
-window.onload = ()=> {
+window.onload = () => {
+    
     stats = new Stats();
     // document.body.appendChild(stats.dom);
 
