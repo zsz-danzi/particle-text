@@ -1,0 +1,180 @@
+<html lang="en"><head>
+	<title>粒子效果-CPU运算</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {background-color: #000;margin: 0px;overflow: hidden;}
+	</style>
+</head>
+<body>
+	<div id="container"><canvas width="489" height="902" style="width: 489px; height: 902px;"></canvas><div style="position: fixed; top: 0px; left: 0px; cursor: pointer; opacity: 0.9; z-index: 10000;"><canvas width="80" height="48" style="width: 80px; height: 48px; display: block;"></canvas><canvas width="80" height="48" style="width: 80px; height: 48px; display: none;"></canvas><canvas width="80" height="48" style="width: 80px; height: 48px; display: none;"></canvas></div></div>
+	<script src="//tgideas.qq.com/2017/three/lib/three.r78.min.js"></script>
+	<script src="//tgideas.qq.com/2017/three/lib/stats.min.js"></script>
+	<script src="//tgideas.qq.com/2017/three/lib/tween.min.js"></script>
+	<script type="text/javascript">
+		var app = {
+			init: function(){
+				var self = this;
+				var renderer, scene, camera, stats, tween;
+				var WIDTH = window.innerWidth;
+				var HEIGHT = window.innerHeight;
+				var container = document.getElementById('container');
+				camera = new THREE.PerspectiveCamera(40, WIDTH/HEIGHT, 1, 10000 );
+				camera.position.z = 150;
+				scene = new THREE.Scene();
+
+
+				// add light
+				var light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 0, 200, 0 );
+				scene.add( light );
+
+				self.addObjs();
+
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(WIDTH, HEIGHT);
+				
+				container.appendChild(renderer.domElement);
+
+				stats = new Stats();
+				container.appendChild(stats.dom);
+
+				window.addEventListener( 'resize', function(e){
+					self.resize();
+				}, false);
+
+				window.requestAnimationFrame(function(time){
+					TWEEN.update();
+					stats.update();
+					self.update(time);
+					window.requestAnimationFrame(arguments.callee)
+				});
+
+				self.scene = scene;
+				self.camera = camera;
+				self.renderer = renderer;
+				
+
+			},
+			addObjs: function(){
+				var self = this;
+				var loader = new THREE.JSONLoader();
+				var obj1, obj2, loaded;
+				loader.load('teapot.js', function(obj) {
+					obj.applyMatrix(new THREE.Matrix4().makeTranslation(0, -10, 0));
+					obj1 = obj;
+					if(obj1 && obj2 && !loaded) {
+						loaded = true;
+						self.addPartice(obj1, obj2);
+					}
+				});	
+				loader.load('head.js', function(obj) {
+					obj.applyMatrix(new THREE.Matrix4().makeTranslation(0, 10, 0));
+					obj2 = obj;
+					if(obj1 && obj2 && !loaded) {
+						loaded = true;
+						self.addPartice(obj1, obj2);
+					}
+				});	
+			},
+			addPartice: function(obj1, obj2){
+				var moreObj, lessObj;
+				if(obj1.vertices.length > obj2.vertices.length) {
+					moreObj = obj1;
+					lessObj = obj2;
+				} else {
+					moreObj = obj2;
+					lessObj = obj1;
+				}
+				var position1 = [];
+				var position2 = [];
+				var moreLen = moreObj.vertices.length;
+				var lessLen = lessObj.vertices.length;
+				moreObj.vertices.forEach(function(o){
+					position1.push(o.clone());
+				});
+				lessObj.vertices.forEach(function(o){
+					position2.push(o.clone());
+				});
+				for(var i = lessLen, j = 0; i < moreLen; i++, j++) {
+					j %= lessLen;
+					position2[i] = position2[j];
+				}
+
+				var particleSystem = new THREE.Group();
+				var texture  = new THREE.TextureLoader().load('//game.gtimg.cn/images/tgideas/2017/three/shader/dot.png');
+				for(var i = 0; i < moreLen; i++) {
+					var geometry = new THREE.Geometry();
+					var pos = position1[i];
+					geometry.vertices.push(new THREE.Vector3());
+					var color = new THREE.Color();
+					color.r = pos.x/30;
+					color.g = pos.y/30;
+					color.b = pos.z/30;
+					var material = new THREE.PointsMaterial({color: color, size:Math.random()*4+2, map:texture, blending:THREE.AddEquation, depthTest: false, transparent:true});
+					var particle = new THREE.Points( geometry, material );
+					particle.position.copy(pos);
+					particleSystem.add(particle);
+
+				}
+
+				var pos = {val: 1};
+				tween = new TWEEN.Tween(pos).to({val: 0}, 2000).easing(TWEEN.Easing.Quadratic.InOut).delay(1000).onUpdate(callback);
+				tweenBack = new TWEEN.Tween(pos).to({val: 1}, 2000).easing(TWEEN.Easing.Quadratic.InOut).delay(1000).onUpdate(callback);
+				tween.chain(tweenBack);
+				tweenBack.chain(tween);
+				tween.start();
+
+				p = position1;
+				function callback(){
+					var val = this.val;
+					var particles = particleSystem.children;
+					
+					for(var i = 0; i < particles.length; i++) {
+						var particle = particles[i];
+						var pos = particle.position;
+						var material = particle.material;
+						pos.x = position1[i].x * val + position2[i].x * (1-val);
+						pos.y = position1[i].y * val + position2[i].y * (1-val);
+						pos.z = position1[i].z * val + position2[i].z * (1-val);
+						material.color.r = pos.z/20;
+						material.color.g = pos.y/20;
+						material.color.b = pos.z/20;
+					}
+				}
+
+				this.scene.add(particleSystem);
+				this.particleSystem = particleSystem;		
+			},
+			resize: function(){
+				this.camera.aspect = window.innerWidth/window.innerHeight;
+				this.camera.updateProjectionMatrix();
+
+				this.renderer.setSize(window.innerWidth, window.innerHeight);
+			},
+			update: function(time){
+				var time = Date.now() * 0.005;
+				if(this.particleSystem) {
+					this.particleSystem.rotation.y = 0.01 * time;
+					var particles = this.particleSystem.children;
+					for(var i = 0; i < particles.length; i++) {
+						var material = particles[i].material;
+						material.size = 1.5 * ( 2.0 + Math.sin( 0.02 * i + time ) );
+					}
+				}
+				
+				this.renderer.render(this.scene, this.camera);
+			}
+		}
+		app.init();
+
+	</script>
+
+
+
+
+
+
+</body></html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html, body, #cvs {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #000;
+            position: relative;
+        }
+        .none {
+            display: none;
+        }
+        .button {
+            width: 120px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            display: block;
+            background-color: #fff;
+            border:1px solid #000;  
+            color: #000;
+            text-decoration: none;
+            font-size: 14px;
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- <img id="tulip" src="img.png" alt="The Tulip" class="none" /> -->
+    <a class="button" id="btn" href="javascript:;">散开2</a>
+    <canvas id="cvs"></canvas>
+    <script src='./stats.module.js'></script>
+    <script src="webgl-utils.js"></script>
+
+    <!-- vertex shader 顶点着色器可以提供投影矩阵的坐标 -->
+		<script  id="vertex-shader-2d" type="x-shader/x-vertex">
+			attribute vec2 a_position;
+			attribute vec2 a_texCoord;
+			
+			uniform vec2 u_resolution;
+			
+			varying vec2 v_texCoord;
+			
+			void main() {
+				// convert the rectangle from pixels to 0.0 to 1.0
+				vec2 zeroToOne = a_position / u_resolution;
+			
+				// convert from 0->1 to 0->2
+				vec2 zeroToTwo = zeroToOne * 2.0;
+			
+				// convert from 0->2 to -1->+1 (clipspace)
+				vec2 clipSpace = zeroToTwo - 1.0;
+			
+				gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+			
+				// pass the texCoord to the fragment shader
+				// The GPU will interpolate this value between points.
+				v_texCoord = a_texCoord;
+			}
+		</script>
+
+		<!-- fragment shader 片段着色器可以提供投影矩阵的颜色 -->
+		<script  id="fragment-shader-2d" type="x-shader/x-fragment">
+			precision mediump float;
+			
+			// our texture
+			uniform sampler2D u_image;
+			
+			// the texCoords passed in from the vertex shader.
+			varying vec2 v_texCoord;
+			
+			void main() {
+				gl_FragColor = texture2D(u_image, v_texCoord);
+			}
+		</script>
+
+    <script src="./indexGPU.js"></script>
+    
+</body>
+</html>
