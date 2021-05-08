@@ -12,7 +12,8 @@ const draw = {
     k: 0, // 0～360 度数
     paused: true,
     dir: 0, // 0~14 边距
-    colors: ['#228b22', '#fd5b78', '#00bfff', '#ffa500', '#ff0000', '#ffffff'],
+    colors: ['#d0d0d0', '#ff5fab', '#ffb8c4', '#ffffff'],
+    // colors: ['#e8cbd2', '#fd5b78', '#00bfff', '#ffa500', '#228b22', '#ffffff'],
     scale: 0, // 倍数
     opacity: 0,
     particle: [],
@@ -63,7 +64,7 @@ const draw = {
         this.ctx.globalAlpha = this.opacity;
         let dis = 3 * Math.ceil(Math.random() * 10) / 10 + 1;
 
-        this.ctx.fillStyle = this.colors[Math.floor(Math.random() * 6)];
+        this.ctx.fillStyle = this.colors[Math.floor(Math.random() * 4)];
         // this.ctx.drawImage(this.img, this.drawX * 2,this.drawY * 2, dis, dis);
 
         this.ctx.arc(this.drawX*2, this.drawY*2, dis, 0, 2*Math.PI);
@@ -86,7 +87,7 @@ const draw = {
             this.ctx.beginPath();
             this.k = Math.ceil(Math.random() * 360);
             this.dir = Math.ceil(Math.random() * 30);
-            this.ctx.fillStyle = this.colors[Math.floor(Math.random() * 6)];
+            this.ctx.fillStyle = this.colors[Math.floor(Math.random() * 4)];
             this.opacity = Math.ceil(Math.random() * 10) / 10 + 0.3;
             this.opacity = this.opacity > 1 ? 1 : this.opacity;
             this.ctx.globalAlpha = this.opacity;
@@ -167,7 +168,7 @@ const draw = {
     animateText() {
         this.ctx.clearRect(0, 0, this.width, this.height);
         
-        for(let i = 0; i < this.particle.length; i++) {
+        for (let i = 0; i < this.particle.length; i++) {
             let item = this.particle[i];
             this.ctx.beginPath();
             this.ctx.fillStyle = item.color;
